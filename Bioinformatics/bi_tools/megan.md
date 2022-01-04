@@ -1,5 +1,25 @@
 # megan安装与使用
 
+## 安装
+```
+axel -a https://software-ab.informatik.uni-tuebingen.de/download/megan6/MEGAN_Community_unix_6_21_16.sh
+bash MEGAN_Community_unix_6_21_16.sh
+# 记得打开X11 server
+```
+
+
+
+
+## 下载数据库
+
+
+
+## 基本使用
+
+
+
+
+
 
 
 ----
