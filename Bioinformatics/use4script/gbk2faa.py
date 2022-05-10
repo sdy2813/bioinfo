@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+@author: xum
+"""
+
 from Bio import SeqIO
 #导入模块，初始传递命令
 import argparse
