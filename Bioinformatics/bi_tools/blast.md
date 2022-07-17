@@ -31,4 +31,4 @@ blastn -db /mnt/db/blast/nt -query final.contigs.fa -outfmt '6 qseqid sseqid sti
 参考资料：
 1. [blast及其格式输出简介](https://www.cnblogs.com/djx571/p/9510550.html)
 
-1. []()
+1. [用blast进行短序列（20nt左右）的搜索](https://www.jianshu.com/p/a6ee3d19b832)
