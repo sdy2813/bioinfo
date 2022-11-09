@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Author: Xum
 
 This is a temporary script file.
 """
