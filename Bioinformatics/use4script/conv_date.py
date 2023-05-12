@@ -35,9 +35,10 @@ def process_records(input_file, output_file):
     SeqIO.write(records, output_file, "fasta")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process fasta file.')
-    parser.add_argument('-i', type=str, required=True, help='Input fasta file')
-    parser.add_argument('-o', type=str, required=True, help='Output fasta file')
+    parser = argparse.ArgumentParser(add_help = False, usage = '\npython3 conv_date.py -i [fa] -o [fa]', description='Process fasta file.')
+    parser.add_argument('-i','--input', metavar = '[fa]', help = 'input file，fasta format', type=str, required=True)
+    parser.add_argument('-o','--output', metavar = '[fa]', help = 'output file，fasta format', type=str, required=True)
+    parser.add_argument('-h', '--help', action = 'help', help = 'help info')
     args = parser.parse_args()
 
     process_records(args.i, args.o)
