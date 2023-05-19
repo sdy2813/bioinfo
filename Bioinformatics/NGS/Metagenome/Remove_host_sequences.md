@@ -126,7 +126,7 @@ samtools fastq -@ 8 SAMPLE_bothReadsUnmapped_sorted.bam \
 
   -0 /dev/null -s /dev/null -n
   
- 或者
+ # 或者
  
  bedtools bamtofastq -i SAMPLE_bothReadsUnmapped_sorted.bam \
 	-fq sample_remove_host_1.fastq \
