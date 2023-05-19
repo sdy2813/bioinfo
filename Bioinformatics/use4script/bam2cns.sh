@@ -3,8 +3,8 @@
 # 定义帮助函数
 helpFunction()
 {
-   echo "bam2cns.sh"
-   echo "Usage: $0 -i input.bam -o output.fasta -d depth -f reference.fa"
+   echo ""
+   echo "Usage: bam2cns.sh -i input.bam -o output.fasta -d depth -f reference.fa"
    echo -e "\t-i Specify the input BAM file."
    echo -e "\t-o Specify the output FASTA file."
    echo -e "\t-d Specify the depth for consensus calling."
