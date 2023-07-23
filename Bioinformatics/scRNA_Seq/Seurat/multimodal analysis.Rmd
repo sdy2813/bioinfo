@@ -1,0 +1,184 @@
+---
+title: "multimodal analysis"
+author: "xum"
+date: "2023-07-18"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 前言
+
+同时测量同一细胞的多种数据类型的能力（称为多模式分析，multimodal analysis）代表了单细胞基因组学的一个令人兴奋的新前沿。
+
+在这里，我们分析了 8,617 个脐带血单核细胞 (CBMC) 的数据集，其中转录组测量与 11 种表面蛋白的丰度估计值配对，其水平通过 DNA 条形码抗体进行量化。首先，我们加载两个计数矩阵：一个用于 RNA 测量，另一个用于抗体衍生标签 (ADT)。
+
+## 数据加载
+
+```{r load_packages}
+setwd("/home/sdy/test/scRNA-seq/Seurat/")
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+```
+
+
+```{r load_data}
+# 加载 RNA UMI 矩阵
+
+# 该数据集还包含~5%的小鼠细胞，我们可以将其用作蛋白质测量的阴性对照。由于这个原因，基因表达矩阵在每个基因的开头附加了# HUMAN_或MOUSE_。
+cbmc.rna <- as.sparse(read.csv(file = "./GSE100866_CBMC_8K_13AB_10X-RNA_umi.csv.gz", sep = ",",
+    header = TRUE, row.names = 1))
+
+# 删除除前100个高度表达的小鼠基因外的所有基因，并从CITE-seq前缀中删除“HUMAN_”
+cbmc.rna <- CollapseSpeciesExpressionMatrix(cbmc.rna)
+
+# 加载 ADT UMI 矩阵
+cbmc.adt <- as.sparse(read.csv(file = "./GSE100866_CBMC_8K_13AB_10X-ADT_umi.csv.gz", sep = ",",
+    header = TRUE, row.names = 1))
+
+# 由于测量是在相同的细胞中进行的，所以这两个矩阵具有相同的列名
+all.equal(colnames(cbmc.rna), colnames(cbmc.adt))
+
+```
+
+
+## 设置 Seurat 对象，添加 RNA 和蛋白质数据
+
+```{r basic_de}
+# 根据scRNA-seq数据创建一个Seurat对象
+cbmc <- CreateSeuratObject(counts = cbmc.rna)
+
+# 我们可以看到，默认情况下，cbmc对象包含一个存储RNA测量的assay
+Assays(cbmc)
+
+# 创建一个新的分析来存储ADT信息
+adt_assay <- CreateAssayObject(counts = cbmc.adt)
+
+# 将此分析添加到先前创建的Seurat对象中
+cbmc[["ADT"]] <- adt_assay
+
+# 验证对象现在包含多个分析
+Assays(cbmc)
+
+# 提取在ADT测定中测量的特征列表
+
+rownames(cbmc[["ADT"]])
+
+# 可以很容易地在两种分析之间来回切换，以指定默认的分析和可视化
+
+DefaultAssay(cbmc)
+
+# 切换默认分析 to ADT
+DefaultAssay(cbmc) <- "ADT"
+DefaultAssay(cbmc)
+
+```
+
+
+## 根据 scRNA-seq 图谱对细胞进行聚类
+
+```{r}
+# 切换默认分析 to RNA
+
+DefaultAssay(cbmc) <- "RNA"
+DefaultAssay(cbmc)
+
+# perform visualization and clustering steps
+cbmc <- NormalizeData(cbmc)
+cbmc <- FindVariableFeatures(cbmc)
+cbmc <- ScaleData(cbmc)
+set.seed(1234)
+cbmc <- RunPCA(cbmc, verbose = FALSE)
+cbmc <- FindNeighbors(cbmc, dims = 1:30)
+cbmc <- FindClusters(cbmc, resolution = 0.8, verbose = FALSE)
+cbmc <- RunUMAP(cbmc, dims = 1:30)
+DimPlot(cbmc, label = TRUE)
+```
+
+
+## 并排可视化多种模式
+
+```{r}
+# 标准化 ADT 数据,
+DefaultAssay(cbmc) <- "ADT"
+cbmc <- NormalizeData(cbmc, normalization.method = "CLR", margin = 2)
+DefaultAssay(cbmc) <- "RNA"
+
+# Note that the following command is an alternative but returns the same result
+cbmc <- NormalizeData(cbmc, normalization.method = "CLR", margin = 2, assay = "ADT")
+
+# Now, we will visualize CD14 levels for RNA and protein By setting the default assay, we can
+# visualize one or the other
+DefaultAssay(cbmc) <- "ADT"
+p1 <- FeaturePlot(cbmc, "CD19", cols = c("lightgrey", "darkgreen")) + ggtitle("CD19 protein")
+DefaultAssay(cbmc) <- "RNA"
+p2 <- FeaturePlot(cbmc, "CD19") + ggtitle("CD19 RNA")
+
+# place plots side-by-side
+p1 | p2
+
+```
+
+## 识别 scRNA-seq 簇的细胞表面标
+
+利用配对的 CITE-seq 测量来帮助注释来自 scRNA-seq 的簇，并识别蛋白质和 RNA 标记。
+
+
+```{r}
+# CD19是一种B细胞标记物，因此我们可以确定簇6在表面表达CD19
+VlnPlot(cbmc, "adt_CD19")
+
+
+
+# we can also identify alternative protein and RNA markers for this cluster through
+# differential expression
+adt_markers <- FindMarkers(cbmc, ident.1 = 6, assay = "ADT")
+rna_markers <- FindMarkers(cbmc, ident.1 = 6, assay = "RNA")
+
+head(adt_markers)
+
+head(rna_markers)
+
+```
+
+
+## 多模体数据的附加可视化
+
+```{r}
+# 绘制ADT散点图(如FACS的双轴图)。注意，如果需要的话，你甚至可以使用HoverLocator和FeatureLocator 'gate'细胞
+FeatureScatter(cbmc, feature1 = "adt_CD19", feature2 = "adt_CD3")
+
+# 蛋白质和RNA之间的关系
+FeatureScatter(cbmc, feature1 = "adt_CD3", feature2 = "rna_CD3E")
+
+FeatureScatter(cbmc, feature1 = "adt_CD4", feature2 = "adt_CD8")
+
+# 让我们看一下原始(非标准化)ADT计数。你可以看到这些值非常高，特别是与RNA值相比。这是由于细胞中显著较高的蛋白#拷贝数，这显著减少了ADT数据中的“drop-out”
+FeatureScatter(cbmc, feature1 = "adt_CD4", feature2 = "adt_CD8", slot = "counts")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
