@@ -1,0 +1,233 @@
+---
+title: "screp"
+author: "xum"
+date: "2023-08-06"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 加载R包以及设置工作目录
+
+```{r}
+setwd("~/Suolab/TCR/scTCR/")
+
+library(scRepertoire)
+library(stringr)
+library(ggplot2)
+library(patchwork)
+library(ggsci)
+library(RColorBrewer)
+```
+
+## 文件读入
+
+设计程序读取cellranger 注释的TCR结果文件
+
+```{r}
+# 获取当前工作目录
+workdir <- "~/Suolab/TCR/scTCR/"
+
+# 列出workdir下的所有文件/目录
+#all_items <- list.files(workdir)
+
+# 保留只有目录的部分
+#dirs <- all_items[file.info(file.path(workdir, all_items))$isdir]
+
+# 定义sample变量  
+samples <- list.files(workdir)
+
+contig_list <- vector("list", length(samples)) 
+
+for(i in seq_along(samples)){
+  
+  file <- paste0("~/Suolab/TCR/scTCR/", samples[i], "/filtered_contig_annotations.csv")
+  
+  contig_list[[i]] <- read.csv(file)
+  
+  names(contig_list)[i] <- samples[i]
+  
+}
+
+
+
+# 设置后续绘图所用调色盘
+my_color <- brewer.pal(12, 'Set3')
+```
+
+
+## contigs 合并
+
+
+由于 CellRanger 的输出是 TCRA 和 TCRB 链的量化，下一步是通过细胞条形码创建包含 TCR 基因（由 VDJC 基因组成）和 CDR3 序列的单个列表对象。这是使用 combineTCR() 执行的，其中输入是剥离的 contig_list。还可以通过样品和 ID 信息重新标记条形码，以防止重复。
+
+```{r}
+combined <- combineTCR(contig_list, 
+                       samples = samples, 
+                       ID = str_split_fixed(samples,"_",3)[,2], 
+                       cells ="T-AB")
+
+```
+
+combineTCR() 的输出将是重叠群数据帧的列表，该列表将被简化为与单细胞条形码相关的读数。它还将通过核苷酸序列 (CTnt)、氨基酸序列 (CTaa)、VDJC 基因序列 (CTgene) 或核苷酸和基因序列的组合 (CTstrict) 将多个读数组合成克隆型调用。 B 细胞的类似功能， combineBCR() 功能类似，但有 2 个主要注意事项：1) 每个条形码最多只能有 2 个序列，如果存在更大的序列，则选择具有最高读数的 2 个。 2) 克隆型的严格定义(CTstrict)基于V基因和核苷酸序列的>85%归一化Levenshtein距离。编辑距离是在所有恢复的 BCR 序列上计算的，无论运行如何。
+
+
+## Contigs 可视化
+
+### 量化Clonotypes
+
+探索克隆型的第一个函数是 `quantContig()` ，用于返回独特克隆型的总数或相对数量。
+```{r}
+
+p1 <- quantContig(combined, cloneCall="gene+nt", scale = T, chain = "both") +
+  scale_fill_manual(values=my_color) +
+  theme_minimal() +    # 使用简单主题
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=12, color = "black"),
+        axis.ticks.x = element_blank(),
+        axis.title.y=element_text(size=14, color = "black"),
+        legend.text=element_text(size=12),
+        legend.title=element_text(size=14),
+        panel.border = element_blank(),
+        axis.line.y = element_line(color = "black"),
+        axis.line.x = element_line(color = "black"),)
+
+p2 <- quantContig(combined, cloneCall="gene+nt", chain = "TRB") +
+  scale_fill_manual(values=my_color) +
+  theme_minimal() +    # 使用简单主题
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=12, color = "black"),
+        axis.ticks.x = element_blank(),
+        axis.title.y=element_text(size=14, color = "black"),
+        legend.text=element_text(size=12),
+        legend.title=element_text(size=14),
+        panel.border = element_blank(),
+        axis.line.y = element_line(color = "black"),
+        axis.line.x = element_line(color = "black"),)
+
+p1 + p2 +
+    plot_layout(guides = 'collect')
+```
+
+### Clonotype丰度
+
+还可以按丰度检查克隆型的相对分布。这里 `abundanceContig()` 将生成一个折线图，其中克隆型总数按样本或运行中的实例数计算。与上面一样，我们还可以使用函数中的 group 变量按 contig 对象内的向量对其进行分组。
+
+```{r}
+abundanceContig(combined, cloneCall = "gene", scale = F)+
+  scale_color_manual(values=my_color)
+  
+```
+
+### Clonotype长度
+
+可以通过调用 `lengtheContig()` 函数来查看CDR3序列的长度分布。重要的是，与其他基本可视化不同，cloneCall 只能是“nt”或“aa”。由于如上所述调用克隆型的方法，长度应显示多峰曲线，这是对未返回的链序列和单个条形码内的多个链使用 NA 的产物。
+
+```{r}
+
+p11 <- lengthContig(combined, cloneCall="aa", chain = "both") +
+  scale_fill_manual(values=my_color) +
+  theme_minimal() +    # 使用简单主题
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=12, color = "black"),
+        axis.ticks.x = element_blank(),
+        axis.title.y=element_text(size=14, color = "black"),
+        legend.text=element_text(size=12),
+        legend.title=element_text(size=14),
+        panel.border = element_blank(),
+        axis.line.y = element_line(color = "black"),
+        axis.line.x = element_line(color = "black"),)
+
+p22 <- lengthContig(combined, cloneCall="aa", chain = "TRB") +
+  scale_fill_manual(values=my_color) +
+  theme_minimal() +    # 使用简单主题
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(size=12, color = "black"),
+        axis.ticks.x = element_blank(),
+        axis.title.y=element_text(size=14, color = "black"),
+        legend.text=element_text(size=12),
+        legend.title=element_text(size=14),
+        panel.border = element_blank(),
+        axis.line.y = element_line(color = "black"),
+        axis.line.x = element_line(color = "black"),)
+
+p11 + p22 +
+    plot_layout(guides = 'collect')
+
+```
+
+
+
+### Clonotypes 比较
+
+可以使用 `compareClonotypes()` 函数查看样本之间的克隆型和动态变化。
+
+```{r}
+compareClonotypes(combined, 
+                  numbers = 10, 
+                  samples = c("MD01-004_LN_1_LN", "MD01-004_tumor_1_tumor"), 
+                  cloneCall="aa", 
+                  graph = "alluvial")
+
+
+```
+
+### 可视化基因使用
+
+最后一个基本分析可视化是 TCR 或 BCR 基因的相对使用情况，使用 `vizGenes()`
+
+```{r}
+vizGenes(combined, gene = "V", 
+         chain = "TRB", 
+         plot = "bar", 
+         order = "variance", 
+         scale = TRUE)
+
+
+```
+
+我们还可以使用 vizGenes() 来查看单个链中基因的使用情况。例如，假设我们对肿瘤和外周血样本之间 TRB V 和 J 使用的差异感兴趣 - 我们可以使用以下代码轻松查看这一点：
+
+```{r}
+vizGenes(combined[c(1,3,5)], 
+         gene = "V", 
+         chain = "TRB", 
+         y.axis = "J", 
+         plot = "heatmap", 
+         scale = TRUE, 
+         order = "gene")
+
+```
+
+
+```{r}
+
+clonalHomeostasis(combined, cloneCall = "gene",
+                  cloneTypes = c(Rare = 1e-04,
+                                 Small = 0.001,
+                                 Medium = 0.01,
+                                 Large = 0.1,
+                                 Hyperexpanded = 1)) +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.5)) +
+  #scale_shape_discrete(name="clonetype") #+
+  scale_fill_jama(name="clonetype group")
+
+```
+
+
+
+
+
