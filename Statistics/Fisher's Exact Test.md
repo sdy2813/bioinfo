@@ -2,7 +2,7 @@
 
 ## Fisher's Exact Test 主要类型和适用场景
 
-_Fisher's Exact Test_ 是一种用于分析两个分类变量之间是否相关的统计检验方法，特别适用于样本量较小的情况。它的主要用途是确定两个比例或发生率是否存在显著差异。此检验通常用于 2x2 的列联表。Fisher's Exact Test 分为单侧（one-sided）和双侧（two-sided）两种形式，它们的主要区别和适用场景如下：
+Fisher's Exact Test 是一种用于分析两个分类变量之间是否相关的统计检验方法，特别适用于样本量较小的情况。它的主要用途是确定两个比例或发生率是否存在显著差异。此检验通常用于 2x2 的列联表。Fisher's Exact Test 分为单侧（one-sided）和双侧（two-sided）两种形式，它们的主要区别和适用场景如下：
 
 ### Two-sided Fisher's Exact Test（双侧检验）
 
