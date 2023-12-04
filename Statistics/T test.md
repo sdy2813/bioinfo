@@ -65,7 +65,54 @@ barplot(differences, main = "Differences in Measurements",
 这个条形图将展示每位患者治疗前后测量值的差异。正值表示治疗前的测量值高于治疗后，负值则相反。这样的视觉展示可以帮助理解数据的变化趋势和差异的一般情况。
 
 
+## Paired T-Test p值计算
 
+### 推导过程
+
+1. **计算差异分数**：对于每一对样本（如前后治疗的数据），计算它们的差异（\(d_i = X_{i1} - X_{i2}\)）。
+
+2. **计算差异分数的均值和标准差**：
+   - 均值：\(\bar{d} = \frac{\sum{d_i}}{n}\)
+   - 标准差：\(s_d = \sqrt{\frac{\sum{(d_i - \bar{d})^2}}{n - 1}}\)
+
+3. **计算t统计量**：
+   \[ t = \frac{\bar{d}}{s_d / \sqrt{n}} \]
+   其中，n是样本对的数量。
+
+4. **计算p值**：使用t值和自由度（df = n - 1），在t分布表中找到相应的p值，或者使用统计软件进行计算。
+
+### R代码解释
+
+假设我们有一组前后治疗的数据：
+
+```R
+# 创建数据
+pre_treatment <- c(8, 7, 6, 9, 10, 5, 7, 8, 9, 6)
+post_treatment <- c(5, 6, 5, 6, 5, 4, 5, 6, 6, 5)
+
+# 计算差异
+differences <- pre_treatment - post_treatment
+
+# 计算差异的均值和标准差
+mean_diff <- mean(differences)
+sd_diff <- sd(differences)
+n <- length(differences)
+
+# 计算t值
+t_value <- mean_diff / (sd_diff / sqrt(n))
+
+# 计算p值
+p_value <- 2 * pt(-abs(t_value), df = n - 1)
+```
+
+在这个R代码中：
+
+- `differences` 是前后治疗数据的差异。
+- `mean_diff` 和 `sd_diff` 分别是这些差异的均值和标准差。
+- `t_value` 是基于这些差异计算的t统计量。
+- `p_value` 是通过`t_value`和自由度计算出的p值，使用`pt`函数来获取t分布的累积分布函数值。因为我们进行的是双尾检验，所以乘以2。
+
+最后，`p_value`就是我们的结果，表示治疗前后数据均值差异的显著性。如果p值小于显著性水平（如0.05），则认为治疗前后存在显著差异。
 
 
 
