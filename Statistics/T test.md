@@ -19,8 +19,50 @@ T-test，即t检验，是一种统计方法，用于判断两组数据的均值�
 
 在实际应用中，选择哪种类型的t检验取决于数据的特点和研究问题。在使用时，还需关注数据是否符合正态分布和方差齐性等假设条件。在R语言中，可以使用内置的`t.test()`函数来执行这些检验，根据不同的需要设置不同的参数。例如，对于独立样本t检验，可以设置参数`var.equal = TRUE`或`FALSE`以适应方差齐性或不齐性的情况。
 
+## Paired T-Test
+配对样本t检验（Paired Sample T-Test）的数学基础建立在以下几个关键点：
 
+1. **差异分数（Difference Scores）**：计算每一对样本间的差异。如果有n对样本，则会有n个差异分数。
 
+2. **均值和标准偏差**：计算这些差异分数的均值（\(\bar{d}\)）和标准偏差（\(s_d\)）。
+
+3. **t统计量**：计算t值，其公式为：
+   \[ t = \frac{\bar{d}}{s_d / \sqrt{n}} \]
+   其中，\(\bar{d}\)是差异分数的均值，\(s_d\)是标准偏差，n是样本对数。
+
+4. **自由度（Degrees of Freedom, df）**：配对t检验的自由度是\(n-1\)，其中n是样本对数。
+
+5. **p值**：使用t值和对应的自由度，通过t分布表或计算软件来找到p值，以判断结果的显著性。
+
+### R语言实例
+
+假设我们有一个简单的数据集，其中包含10位患者在治疗前后的某项指标测量值：
+
+```R
+# 创建数据
+pre_treatment <- c(8, 7, 6, 9, 10, 5, 7, 8, 9, 6)
+post_treatment <- c(5, 6, 5, 6, 5, 4, 5, 6, 6, 5)
+
+# 执行配对样本t检验
+t.test(pre_treatment, post_treatment, paired = TRUE)
+```
+
+在这个例子中，`pre_treatment`和`post_treatment`分别是治疗前后的测量值，我们使用`paired = TRUE`参数来指定这是一个配对样本t检验。
+
+### 图形解释
+
+我们可以通过绘制差异分数的条形图来直观展示这些差异。这样的图形有助于理解配对样本之间的变化情况：
+
+```R
+# 计算差异
+differences <- pre_treatment - post_treatment
+
+# 绘制条形图
+barplot(differences, main = "Differences in Measurements", 
+        xlab = "Patient", ylab = "Difference in Measurement")
+```
+
+这个条形图将展示每位患者治疗前后测量值的差异。正值表示治疗前的测量值高于治疗后，负值则相反。这样的视觉展示可以帮助理解数据的变化趋势和差异的一般情况。
 
 
 
