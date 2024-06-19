@@ -8,9 +8,27 @@
 ## Create R Environment
 
 ```{sh}
-mamba create -n Seurat4  r-base r-ggsci r-ggseqlogo r-ggsignif r-ggthemes r-ggupset r-ggrepel r-ggraph r-httpgd r-igraph r-patchwork r-pak r-reshape2 r-rmarkdown r-seurat=4.4.0 r-seuratobject=5.0.1  r-vegan r-tidyverse python=3.7.12 umap-learn=0.4.6 prompt-toolkit=3.0.39 numba=0.51.2 numpy=1.21.6 
+mamba create -n Seurat4  r-base r-ggsci r-ggseqlogo r-ggsignif r-ggthemes r-ggupset r-ggrepel r-ggraph r-igraph r-patchwork r-pak r-reshape2 r-rmarkdown r-seurat=4.4.0 r-seuratobject=5.0.1  r-vegan r-tidyverse python=3.7.12 umap-learn=0.4.6 prompt-toolkit=3.0.39 numba=0.51.2 numpy=1.21.6 
 
 ```
+
+## install R packages
+
+pak 是一个很棒的用于安装R包的工具，可以先安装上，后续的需要安装R包就可以用pak来安装了。
+
+```{R}
+install.packages("pak")
+```
+
+## Code Server R
+
+```{R}
+pak::pkg_install("httpgd")
+
+```
+
+
+
 
 
 
