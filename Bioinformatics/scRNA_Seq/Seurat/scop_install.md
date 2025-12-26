@@ -15,7 +15,9 @@ pak::pkg_install("SingleCellExperiment")
 
 ```{sh}
 
-mamba install bioconda::bioconductor-scdblfinder
+pak::pkg_install("plger/scDblFinder")
+
+pak::pkg_install("proxyC")
 
 ```
 
