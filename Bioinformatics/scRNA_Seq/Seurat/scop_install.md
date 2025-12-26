@@ -10,6 +10,7 @@ scop::PrepareEnv(
     envname = "scop_py",
   conda = "/soft/sim/mambaforge/bin/conda")
 
+pak::pkg_install("SingleCellExperiment")
 ```
 
 
