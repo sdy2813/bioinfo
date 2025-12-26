@@ -13,6 +13,12 @@ scop::PrepareEnv(
 pak::pkg_install("SingleCellExperiment")
 ```
 
+```{sh}
+
+mamba install bioconda::bioconductor-scdblfinder
+
+```
+
 
 
 ## reference
