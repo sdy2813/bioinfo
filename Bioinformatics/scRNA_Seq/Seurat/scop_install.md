@@ -11,3 +11,10 @@ scop::PrepareEnv(
   conda = "/soft/sim/mambaforge/bin/conda")
 
 ```
+
+
+
+## reference
+
++ [scop](https://github.com/mengxu98/scop)
+
