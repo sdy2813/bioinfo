@@ -21,5 +21,5 @@ pip install memento-de
 ## 参考
 
 
-[scvi-tools](https://docs.scvi-tools.org/en/latest/installation.html)
-[scib](https://scib.readthedocs.io/en/latest/)
++ [scvi-tools](https://docs.scvi-tools.org/en/latest/installation.html)
++ [scib](https://scib.readthedocs.io/en/latest/)
