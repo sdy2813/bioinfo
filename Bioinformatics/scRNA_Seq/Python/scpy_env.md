@@ -1,4 +1,7 @@
 
+# 配置单细胞分析python环境
+
+## 安装软件
 
 ```{sh}
 
@@ -12,6 +15,11 @@ pip install --quiet scvi-colab
 mamba install ipython
 pip install memento-de
 
+
 ```
 
+## 参考
 
+
+[scvi-tools](https://docs.scvi-tools.org/en/latest/installation.html)
+[scib](https://scib.readthedocs.io/en/latest/)
